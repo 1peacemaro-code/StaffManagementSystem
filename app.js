@@ -1,223 +1,27 @@
 const MAX_DAYS = 27;
 const STANDARD_MAX = 5;
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwD0Wmgte1oiTCl0UvgzC_-618qD72JPyKOB7PPyw7SFO6MAMR5YnHGRAxmOz6MVB11/exec";
-
 let lessonMaster = [{name:"A"},{name:"B"},{name:"1"},{name:"2"},{name:"3"},{name:"4"},{name:"5"}];
 
-const dayCards = document.getElementById("dayCards");
-const dayCounter = document.getElementById("dayCounter");
-const previewBtn = document.getElementById("previewBtn");
-const submitBtn = document.getElementById("submitBtn");
-const previewOutput = document.getElementById("previewOutput");
-const statusBox = document.getElementById("statusBox");
-const submitStatus = document.getElementById("submitStatus");
-const teacherSelect = document.getElementById("teacherName");
-const monthSelect = document.getElementById("targetMonth");
-const calendarGrid = document.getElementById("calendarGrid");
+const dayCards=document.getElementById("dayCards"),dayCounter=document.getElementById("dayCounter"),previewBtn=document.getElementById("previewBtn"),submitBtn=document.getElementById("submitBtn"),previewOutput=document.getElementById("previewOutput"),statusBox=document.getElementById("statusBox"),submitStatus=document.getElementById("submitStatus"),teacherSelect=document.getElementById("teacherName"),monthSelect=document.getElementById("targetMonth"),calendarGrid=document.getElementById("calendarGrid");
 
-function jsonp(action, params = {}) {
-  return new Promise((resolve, reject) => {
-    const cb = "smsCallback_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-    window[cb] = (data) => { resolve(data); delete window[cb]; script.remove(); };
-    const query = new URLSearchParams({ action, callback: cb, ...params });
-    const script = document.createElement("script");
-    script.src = GAS_WEB_APP_URL + "?" + query.toString();
-    script.onerror = () => reject(new Error("読み込み失敗"));
-    document.body.appendChild(script);
-  });
-}
-
-function setStatus(type, message) { statusBox.className = `status ${type}`; statusBox.textContent = message; }
-
-function parseMonthText(text) {
-  const match = text.match(/(\d{4})年(\d{1,2})月/);
-  if (!match) return null;
-  return { year: Number(match[1]), month: Number(match[2]) };
-}
-
-function setupMonths() {
-  monthSelect.innerHTML = "";
-  const now = new Date();
-  for (let i = -1; i <= 10; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const text = `${d.getFullYear()}年${d.getMonth() + 1}月`;
-    const opt = document.createElement("option");
-    opt.value = text; opt.textContent = text;
-    if (i === 1) opt.selected = true;
-    monthSelect.appendChild(opt);
-  }
-}
-
-function renderCalendar() {
-  calendarGrid.innerHTML = "";
-  const parsed = parseMonthText(monthSelect.value);
-  if (!parsed) return;
-  const first = new Date(parsed.year, parsed.month - 1, 1);
-  const last = new Date(parsed.year, parsed.month, 0);
-  for (let i = 0; i < first.getDay(); i++) {
-    const empty = document.createElement("button");
-    empty.className = "day-cell empty"; empty.type = "button";
-    calendarGrid.appendChild(empty);
-  }
-  for (let day = 1; day <= last.getDate(); day++) {
-    const btn = document.createElement("button");
-    btn.type = "button"; btn.className = "day-cell";
-    const dateValue = `${parsed.year}-${String(parsed.month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-    btn.dataset.date = dateValue;
-    btn.innerHTML = `${day}<small>追加</small>`;
-    btn.addEventListener("click", () => addDayCard(dateValue));
-    calendarGrid.appendChild(btn);
-  }
-  updateCalendarSelected();
-}
-
-function updateCalendarSelected() {
-  const selected = new Set([...dayCards.querySelectorAll(".work-date")].map(i => i.value));
-  calendarGrid.querySelectorAll(".day-cell:not(.empty)").forEach(btn => {
-    const small = btn.querySelector("small");
-    if (selected.has(btn.dataset.date)) { btn.classList.add("selected"); if(small) small.textContent = "追加済"; }
-    else { btn.classList.remove("selected"); if(small) small.textContent = "追加"; }
-  });
-}
-
-async function loadMasters() {
-  try {
-    const data = await jsonp("getMasters");
-    if (data.teachers && data.teachers.length) {
-      teacherSelect.innerHTML = '<option value="">選択してください</option>';
-      data.teachers.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t.name; opt.textContent = t.name;
-        teacherSelect.appendChild(opt);
-      });
-    }
-    if (data.lessons && data.lessons.length) lessonMaster = data.lessons;
-    rebuildLessonCheckboxes();
-    checkSubmitStatus();
-  } catch(e) {
-    teacherSelect.innerHTML = '<option value="">読み込み失敗</option>';
-    console.error(e);
-  }
-}
-
-function rebuildLessonCheckboxes() {
-  document.querySelectorAll(".standard-lessons").forEach(box => {
-    box.innerHTML = "";
-    lessonMaster.forEach(l => {
-      const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" value="${l.name}">${l.name}`;
-      box.appendChild(label);
-    });
-  });
-}
-
-function makeTimeOptions(select, defaultValue = "") {
-  select.innerHTML = '<option value="">選択</option>';
-  for (let h = 13; h <= 22; h++) {
-    for (let m of [0, 30]) {
-      if (h === 22 && m === 30) continue;
-      const value = `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-      const opt = document.createElement("option");
-      opt.value = value; opt.textContent = value;
-      if (value === defaultValue) opt.selected = true;
-      select.appendChild(opt);
-    }
-  }
-}
-
-function updateCounter() {
-  const count = dayCards.querySelectorAll(".day-card").length;
-  dayCounter.textContent = `${count} / ${MAX_DAYS}日`;
-}
-
-function addStandardRows(container) {
-  container.innerHTML = "";
-  for (let i = 1; i <= STANDARD_MAX; i++) {
-    const row = document.createElement("div");
-    row.className = "standard-row";
-    row.innerHTML = `<label class="field"><span>STANDARD ${i} 開始</span><select class="standard-start"></select></label><label class="field"><span>STANDARD ${i} 終了</span><select class="standard-end"></select></label>`;
-    container.appendChild(row);
-    makeTimeOptions(row.querySelector(".standard-start"));
-    makeTimeOptions(row.querySelector(".standard-end"));
-  }
-}
-
-function addDayCard(dateValue) {
-  if ([...dayCards.querySelectorAll(".work-date")].some(i => i.value === dateValue)) return;
-  if (dayCards.querySelectorAll(".day-card").length >= MAX_DAYS) { alert("追加できる日付は最大27日です。"); return; }
-  const template = document.getElementById("dayTemplate");
-  const clone = template.content.cloneNode(true);
-  const card = clone.querySelector(".day-card");
-  card.querySelector(".work-date").value = dateValue;
-  card.querySelector(".card-title").textContent = `${dateValue} の勤務`;
-  makeTimeOptions(card.querySelector(".work-start"), "16:00");
-  makeTimeOptions(card.querySelector(".work-end"), "22:00");
-  addStandardRows(card.querySelector(".standard-list"));
-  card.querySelector(".delete-btn").addEventListener("click", () => { card.remove(); updateCounter(); updateCalendarSelected(); buildPreview(); });
-  card.addEventListener("change", buildPreview);
-  dayCards.appendChild(card);
-  rebuildLessonCheckboxes();
-  updateCounter(); updateCalendarSelected(); buildPreview();
-}
-
-function getCardData(card) {
-  const normalLessons = [...card.querySelectorAll(".standard-lessons input:checked")].map(i => i.value);
-  const standard = [];
-  card.querySelectorAll(".standard-row").forEach(row => {
-    const start = row.querySelector(".standard-start").value;
-    const end = row.querySelector(".standard-end").value;
-    if (start || end) standard.push({start, end});
-  });
-  return {date:card.querySelector(".work-date").value, workStart:card.querySelector(".work-start").value, workEnd:card.querySelector(".work-end").value, normalLessons, standard};
-}
-
-function collectData() {
-  return {version:"4.5", submittedAt:new Date().toISOString(), teacher:teacherSelect.value, month:monthSelect.value, days:[...dayCards.querySelectorAll(".day-card")].map(getCardData)};
-}
-
-function validateData(data) {
-  const errors = [];
-  if (!data.teacher) errors.push("先生名を選択してください。");
-  if (data.days.length === 0) errors.push("日付を1つ以上追加してください。");
-  data.days.forEach((day,index) => {
-    const label = `${index + 1}日目`;
-    if (!day.workStart) errors.push(`${label}：勤務開始を選択してください。`);
-    if (!day.workEnd) errors.push(`${label}：勤務終了を選択してください。`);
-    if (day.workStart && day.workEnd && day.workStart >= day.workEnd) errors.push(`${label}：勤務終了は開始より後にしてください。`);
-    day.standard.forEach((s,i) => {
-      if (!s.start || !s.end) errors.push(`${label}：STANDARD ${i + 1} は開始と終了を両方選択してください。`);
-      if (s.start && s.end && s.start >= s.end) errors.push(`${label}：STANDARD ${i + 1} の終了は開始より後にしてください。`);
-    });
-  });
-  return errors;
-}
-
-function buildPreview() { previewOutput.textContent = JSON.stringify(collectData(), null, 2); }
-
-async function checkSubmitStatus() {
-  const teacher = teacherSelect.value, month = monthSelect.value;
-  if (!teacher || !month) { submitStatus.className = "status neutral"; submitStatus.textContent = "先生名と対象月を選択すると提出状況が表示されます。"; return; }
-  try {
-    const data = await jsonp("getStatus", {teacher, month});
-    submitStatus.className = data.submitted ? "status success" : "status neutral";
-    submitStatus.textContent = `${month}：${data.submitted ? "提出済" : "未提出"}`;
-  } catch(e) { submitStatus.className = "status error"; submitStatus.textContent = "提出状況の取得に失敗しました。"; }
-}
-
-async function submitToGas() {
-  const data = collectData(), errors = validateData(data);
-  buildPreview();
-  if (errors.length) { setStatus("error", errors.join(" / ")); alert(errors.join("\n")); return; }
-  try {
-    submitBtn.disabled = true; setStatus("loading", "送信中です…");
-    await fetch(GAS_WEB_APP_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(data)});
-    setStatus("success", "送信しました。最新提出として保存されます。"); alert("送信しました。"); setTimeout(checkSubmitStatus,1200);
-  } catch(e) { setStatus("error","送信に失敗しました。"); alert("送信に失敗しました。"); }
-  finally { submitBtn.disabled = false; }
-}
-
-previewBtn.addEventListener("click", buildPreview);
-submitBtn.addEventListener("click", submitToGas);
-teacherSelect.addEventListener("change", () => {buildPreview(); checkSubmitStatus();});
-monthSelect.addEventListener("change", () => {dayCards.innerHTML = ""; renderCalendar(); updateCounter(); buildPreview(); checkSubmitStatus();});
-setupMonths(); renderCalendar(); updateCounter(); loadMasters();
+function jsonp(action,params={}){return new Promise((resolve,reject)=>{const cb="smsCallback_"+Date.now()+"_"+Math.floor(Math.random()*10000);window[cb]=data=>{resolve(data);delete window[cb];script.remove();};const query=new URLSearchParams({action,callback:cb,...params});const script=document.createElement("script");script.src=GAS_WEB_APP_URL+"?"+query.toString();script.onerror=()=>reject(new Error("読み込み失敗"));document.body.appendChild(script);});}
+function setStatus(type,message){statusBox.className=`status ${type}`;statusBox.textContent=message;}
+function parseMonthText(text){const match=text.match(/(\d{4})年(\d{1,2})月/);if(!match)return null;return{year:Number(match[1]),month:Number(match[2])};}
+function setupMonths(){monthSelect.innerHTML="";const now=new Date();for(let i=-1;i<=10;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1,12,0,0);const text=`${d.getFullYear()}年${d.getMonth()+1}月`;const opt=document.createElement("option");opt.value=text;opt.textContent=text;if(i===1)opt.selected=true;monthSelect.appendChild(opt);}}
+function formatCardTitle(dateValue){const d=new Date(dateValue+"T12:00:00");const w=["日","月","火","水","木","金","土"][d.getDay()];return `${d.getMonth()+1}/${d.getDate()}（${w}）の勤務`;}
+function renderCalendar(){calendarGrid.innerHTML="";const parsed=parseMonthText(monthSelect.value);if(!parsed)return;const first=new Date(parsed.year,parsed.month-1,1,12,0,0);const last=new Date(parsed.year,parsed.month,0,12,0,0);const today=new Date();const todayValue=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;for(let i=0;i<first.getDay();i++){const empty=document.createElement("button");empty.className="day-cell empty";empty.type="button";empty.tabIndex=-1;calendarGrid.appendChild(empty);}for(let day=1;day<=last.getDate();day++){const btn=document.createElement("button");btn.type="button";btn.className="day-cell";const d=new Date(parsed.year,parsed.month-1,day,12,0,0);const dow=d.getDay();const dateValue=`${parsed.year}-${String(parsed.month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;btn.dataset.date=dateValue;btn.textContent=String(day);btn.setAttribute("aria-label",`${day}日を選択`);if(dow===0)btn.classList.add("sun");if(dow===6)btn.classList.add("sat");if(dateValue===todayValue)btn.classList.add("today");btn.addEventListener("click",()=>addDayCard(dateValue));calendarGrid.appendChild(btn);}updateCalendarSelected();}
+function updateCalendarSelected(){const selected=new Set([...dayCards.querySelectorAll(".work-date")].map(i=>i.value));calendarGrid.querySelectorAll(".day-cell:not(.empty)").forEach(btn=>{btn.classList.toggle("selected",selected.has(btn.dataset.date));});}
+async function loadMasters(){try{const data=await jsonp("getMasters");if(data.teachers&&data.teachers.length){teacherSelect.innerHTML='<option value="">選択してください</option>';data.teachers.forEach(t=>{const opt=document.createElement("option");opt.value=t.name;opt.textContent=t.name;teacherSelect.appendChild(opt);});}else{teacherSelect.innerHTML='<option value="">先生が登録されていません</option>';}if(data.lessons&&data.lessons.length)lessonMaster=data.lessons;rebuildLessonCheckboxes();checkSubmitStatus();}catch(e){teacherSelect.innerHTML='<option value="">読み込み失敗</option>';console.error(e);}}
+function rebuildLessonCheckboxes(){document.querySelectorAll(".standard-lessons").forEach(box=>{box.innerHTML="";lessonMaster.forEach(l=>{const label=document.createElement("label");label.innerHTML=`<input type="checkbox" value="${l.name}">${l.name}`;box.appendChild(label);});});}
+function makeTimeOptions(select,defaultValue=""){select.innerHTML='<option value="">選択</option>';for(let h=13;h<=22;h++){for(let m of [0,30]){if(h===22&&m===30)continue;const value=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;const opt=document.createElement("option");opt.value=value;opt.textContent=value;if(value===defaultValue)opt.selected=true;select.appendChild(opt);}}}
+function updateCounter(){const count=dayCards.querySelectorAll(".day-card").length;dayCounter.textContent=`${count} / ${MAX_DAYS}日 選択中`;}
+function addStandardRows(container){container.innerHTML="";for(let i=1;i<=STANDARD_MAX;i++){const row=document.createElement("div");row.className="standard-row";row.innerHTML=`<label class="field"><span>STANDARD ${i} 開始</span><select class="standard-start"></select></label><label class="field"><span>STANDARD ${i} 終了</span><select class="standard-end"></select></label>`;container.appendChild(row);makeTimeOptions(row.querySelector(".standard-start"));makeTimeOptions(row.querySelector(".standard-end"));}}
+function addDayCard(dateValue){if([...dayCards.querySelectorAll(".work-date")].some(i=>i.value===dateValue))return;if(dayCards.querySelectorAll(".day-card").length>=MAX_DAYS){alert("追加できる日付は最大27日です。");return;}const template=document.getElementById("dayTemplate");const clone=template.content.cloneNode(true);const card=clone.querySelector(".day-card");card.querySelector(".work-date").value=dateValue;card.querySelector(".card-title").textContent=formatCardTitle(dateValue);makeTimeOptions(card.querySelector(".work-start"),"16:00");makeTimeOptions(card.querySelector(".work-end"),"22:00");addStandardRows(card.querySelector(".standard-list"));card.querySelector(".delete-btn").addEventListener("click",()=>{card.remove();updateCounter();updateCalendarSelected();buildPreview();});card.addEventListener("change",buildPreview);dayCards.appendChild(card);rebuildLessonCheckboxes();updateCounter();updateCalendarSelected();buildPreview();card.scrollIntoView({behavior:"smooth",block:"start"});}
+function getCardData(card){const normalLessons=[...card.querySelectorAll(".standard-lessons input:checked")].map(i=>i.value);const standard=[];card.querySelectorAll(".standard-row").forEach(row=>{const start=row.querySelector(".standard-start").value;const end=row.querySelector(".standard-end").value;if(start||end)standard.push({start,end});});return{date:card.querySelector(".work-date").value,workStart:card.querySelector(".work-start").value,workEnd:card.querySelector(".work-end").value,normalLessons,standard};}
+function collectData(){return{version:"6.0",submittedAt:new Date().toISOString(),teacher:teacherSelect.value,month:monthSelect.value,days:[...dayCards.querySelectorAll(".day-card")].map(getCardData)};}
+function validateData(data){const errors=[];if(!data.teacher)errors.push("先生名を選択してください。");if(data.days.length===0)errors.push("日付を1つ以上選択してください。");data.days.forEach((day,index)=>{const label=`${index+1}日目`;if(!day.workStart)errors.push(`${label}：勤務開始を選択してください。`);if(!day.workEnd)errors.push(`${label}：勤務終了を選択してください。`);if(day.workStart&&day.workEnd&&day.workStart>=day.workEnd)errors.push(`${label}：勤務終了は開始より後にしてください。`);day.standard.forEach((s,i)=>{if(!s.start||!s.end)errors.push(`${label}：STANDARD ${i+1} は開始と終了を両方選択してください。`);if(s.start&&s.end&&s.start>=s.end)errors.push(`${label}：STANDARD ${i+1} の終了は開始より後にしてください。`);});});return errors;}
+function buildPreview(){previewOutput.textContent=JSON.stringify(collectData(),null,2);}
+async function checkSubmitStatus(){const teacher=teacherSelect.value,month=monthSelect.value;if(!teacher||!month){submitStatus.className="status neutral";submitStatus.textContent="先生名と対象月を選択すると提出状況が表示されます。";return;}try{const data=await jsonp("getStatus",{teacher,month});submitStatus.className=data.submitted?"status success":"status neutral";submitStatus.textContent=`${month}：${data.submitted?"提出済":"未提出"}`;}catch(e){submitStatus.className="status error";submitStatus.textContent="提出状況の取得に失敗しました。";}}
+async function submitToGas(){const data=collectData(),errors=validateData(data);buildPreview();if(errors.length){setStatus("error",errors.join(" / "));alert(errors.join("\n"));return;}try{submitBtn.disabled=true;setStatus("loading","送信中です…");await fetch(GAS_WEB_APP_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)});setStatus("success","送信しました。最新提出として保存されます。");alert("送信しました。");setTimeout(checkSubmitStatus,1200);}catch(e){setStatus("error","送信に失敗しました。");alert("送信に失敗しました。");}finally{submitBtn.disabled=false;}}
+previewBtn.addEventListener("click",buildPreview);submitBtn.addEventListener("click",submitToGas);teacherSelect.addEventListener("change",()=>{buildPreview();checkSubmitStatus();});monthSelect.addEventListener("change",()=>{dayCards.innerHTML="";renderCalendar();updateCounter();buildPreview();checkSubmitStatus();});setupMonths();renderCalendar();updateCounter();loadMasters();
