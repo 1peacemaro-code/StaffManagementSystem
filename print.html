@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタッフ管理システム｜完成シフト印刷</title>
+  <link rel="stylesheet" href="../css/print.css">
+</head>
+<body>
+  <main class="app">
+    <header class="screen-header">
+      <div>
+        <p class="eyebrow">Staff Management System</p>
+        <h1>完成シフト印刷</h1>
+      </div>
+      <span class="badge">Ver.5.2</span>
+    </header>
+
+    <section class="panel controls no-print">
+      <label class="field">
+        <span>対象月</span>
+        <select id="targetMonth"></select>
+      </label>
+
+      <label class="field">
+        <span>日付</span>
+        <select id="targetDate"></select>
+      </label>
+
+      <button id="loadBtn" class="primary" type="button">読み込み</button>
+      <button id="printBtn" class="secondary" type="button">印刷</button>
+      <a class="link-btn" href="dashboard.html">ダッシュボードへ</a>
+      <a class="link-btn" href="shift.html">編集へ</a>
+    </section>
+
+    <section id="statusBox" class="status neutral no-print">対象月と日付を選んで読み込んでください。</section>
+
+    <section class="print-sheet">
+      <header class="print-title">
+        <h2>スタッフシフト</h2>
+        <p id="printDate">未選択</p>
+      </header>
+
+      <div id="printArea" class="print-area empty">
+        データを読み込んでください。
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/print.js"></script>
+</body>
+</html>

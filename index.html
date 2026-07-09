@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタッフ管理システム｜先生提出</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div>
+        <p class="eyebrow">Staff Management System</p>
+        <h1>スタッフ希望提出</h1>
+      </div>
+      <span class="badge">Ver.4.5</span>
+    </header>
+
+    <section class="panel notice">
+      <strong>提出ルール</strong>
+      <p>入れる日をカレンダーから選んでください。再提出した場合は、同じ先生・同じ対象月の最新提出が有効になります。</p>
+    </section>
+
+    <section class="panel">
+      <label class="field">
+        <span>先生名</span>
+        <select id="teacherName"><option value="">読み込み中...</option></select>
+      </label>
+      <label class="field">
+        <span>対象月</span>
+        <select id="targetMonth"></select>
+      </label>
+    </section>
+
+    <section id="submitStatus" class="status neutral">提出状況を確認中です。</section>
+
+    <section class="calendar-panel">
+      <div class="calendar-head">
+        <h2>日付を選択</h2>
+        <p>入れる日をクリックすると入力カードが追加されます。</p>
+      </div>
+      <div class="weekday-row"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </section>
+
+    <section class="toolbar"><p id="dayCounter">0 / 27日</p></section>
+    <section id="dayCards" class="cards"></section>
+
+    <section class="actions">
+      <button id="previewBtn" class="secondary" type="button">入力内容を確認</button>
+      <button id="submitBtn" class="primary" type="button">送信</button>
+    </section>
+
+    <section id="statusBox" class="status hidden"></section>
+
+    <section class="panel preview">
+      <h2>送信内容プレビュー</h2>
+      <pre id="previewOutput">まだ入力内容はありません。</pre>
+    </section>
+  </main>
+
+  <template id="dayTemplate">
+    <article class="day-card">
+      <div class="card-head">
+        <h2 class="card-title">勤務日</h2>
+        <button class="delete-btn" type="button">削除</button>
+      </div>
+      <input class="work-date" type="hidden">
+      <div class="grid">
+        <label class="field"><span>勤務開始</span><select class="work-start time-select"></select></label>
+        <label class="field"><span>勤務終了</span><select class="work-end time-select"></select></label>
+      </div>
+      <div class="lesson-box">
+        <p class="label-title">通常授業（1対2）</p>
+        <div class="chips standard-lessons"></div>
+      </div>
+      <div class="lesson-box">
+        <p class="label-title">STANDARD（1対1）最大5件</p>
+        <div class="standard-list"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>スタッフ管理システム - カレンダー</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar print-hide">
+    <div>
+      <div class="eyebrow">SMS Ver.3.0 Prototype</div>
+      <h1>スタッフカレンダー</h1>
+    </div>
+    <div class="header-actions">
+      <a class="link-button" href="admin.html">管理画面</a>
+      <button id="printBtn" class="primary" type="button">印刷</button>
+    </div>
+  </header>
+
+  <main class="container wide calendar-page">
+    <section class="panel print-hide">
+      <div class="grid two">
+        <label>表示月
+          <input id="calendarMonth" type="month" />
+        </label>
+      </div>
+    </section>
+    <section id="calendarOutput" class="calendar-grid"></section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>SMS.initCalendarPage();</script>
+</body>
+</html>

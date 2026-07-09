@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタッフ管理システム｜マスタ管理</title>
+  <link rel="stylesheet" href="../css/master.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div>
+        <p class="eyebrow">Staff Management System</p>
+        <h1>マスタ管理</h1>
+        <p class="lead">先生名の追加・表示切替・並び順を管理します。</p>
+      </div>
+      <span class="badge">Ver.5.3</span>
+    </header>
+
+    <section class="panel">
+      <h2>先生を追加</h2>
+      <div class="add-row">
+        <input id="newTeacherName" type="text" placeholder="例：山田先生">
+        <button id="addBtn" class="primary" type="button">追加</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>先生マスタ</h2>
+        <button id="loadBtn" class="secondary" type="button">再読み込み</button>
+      </div>
+      <p class="note">表示状態が「表示」の先生だけが提出画面に出ます。</p>
+      <div id="statusBox" class="status neutral">読み込み待ちです。</div>
+      <div id="teacherList" class="teacher-list"></div>
+      <button id="saveBtn" class="primary save-btn" type="button">保存</button>
+    </section>
+
+    <a class="back" href="dashboard.html">← ダッシュボードへ戻る</a>
+  </main>
+
+  <script src="../js/master.js"></script>
+</body>
+</html>
