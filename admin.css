@@ -1,0 +1,17 @@
+:root{--bg:#f6f8fb;--card:#fff;--text:#202124;--muted:#5f6368;--line:#dadce0;--blue:#1a73e8;--green:#188038;--shadow:0 6px 18px rgba(60,64,67,.12);--radius:18px}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.app{width:min(1100px,100%);margin:0 auto;padding:24px 16px 48px}.header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+.eyebrow{margin:0 0 4px;color:var(--blue);font-size:13px;font-weight:700}h1{margin:0;font-size:28px}h2{margin:0 0 8px;font-size:20px}
+.badge{padding:8px 12px;border-radius:999px;background:#e8f0fe;color:var(--blue);font-weight:700;font-size:13px}
+.panel{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:7px;font-weight:700;color:var(--muted);font-size:13px;margin-bottom:12px}
+select{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 12px;background:#fff;font-size:16px;color:var(--text)}
+button{border:none;border-radius:999px;padding:13px 18px;cursor:pointer;font-weight:800;font-size:15px}.primary{background:var(--blue);color:#fff}
+.status{margin:16px 0;padding:14px;border-radius:14px;border:1px solid var(--line);font-weight:800}.neutral{background:#e8f0fe;color:var(--blue);border-color:#d2e3fc}.success{background:#e6f4ea;color:var(--green);border-color:#ceead6}
+.note{margin:0 0 16px;color:var(--muted)}
+.day-block{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;background:#fff}
+.day-title{font-weight:900;font-size:18px;margin-bottom:12px;color:var(--blue)}
+.teacher-card{border-top:1px solid #edf0f5;padding:12px 0}.teacher-card:first-of-type{border-top:none}
+.teacher-name{font-weight:900;font-size:16px;margin-bottom:6px}.row{display:grid;grid-template-columns:160px 1fr;gap:10px;margin:4px 0}.label{color:var(--muted);font-weight:800}.value{white-space:pre-wrap}
+.free{font-weight:900;color:var(--green)}.empty{color:var(--muted)}
+@media(max-width:720px){.row{grid-template-columns:1fr}.app{padding:18px 12px}h1{font-size:24px}}
